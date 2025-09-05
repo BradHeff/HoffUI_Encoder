@@ -180,7 +180,7 @@ class FFMPEGEncoder:
                 from math import gcd
 
                 aspect_gcd = gcd(width, height)
-                aspect_ratio = f"{width//aspect_gcd}:{height//aspect_gcd}"
+                aspect_ratio = f"{width // aspect_gcd}:{height // aspect_gcd}"
             else:
                 aspect_ratio = "Unknown"
 
@@ -344,8 +344,8 @@ class FFMPEGEncoder:
                                 progress_callback(
                                     progress, f"Encoding... {progress:.1f}%"
                                 )
-                        except:
-                            pass
+                        except Exception as e:
+                            print(f"Progress monitoring error: {e}")
 
             return process.returncode == 0
 
