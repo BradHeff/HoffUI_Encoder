@@ -1,0 +1,15 @@
+[Desktop Entry]
+Name=HoffUI FFMPEG Encoder
+GenericName=HoffUI FFMPEG Encoder
+X-GNOME-FullName=FFMPEG GUI Encoder
+X-GNOME-DocPath=hoffui_encoder
+X-GNOME-Gettext-Domain=hoffui_encoder
+Comment=HoffUI FFMPEG Encoder is used to encode video files using FFMPEG
+Exec=hoffui_encoder
+Icon=/usr/share/pixmaps/hoffui.png
+Terminal=false
+Type=Application
+Keywords=hoff;tool;network;networking;
+StartupNotify=true
+Categories=GTK;;Security;X-GNOME-Settings-Panel;X-GNOME-SystemSettings;X-Unity-Settings-Panel;X-XFCE-SettingsDialog;X-XFCE-SystemSettings;Utility;Networking;
+X-Developer=Brad Heffernan
