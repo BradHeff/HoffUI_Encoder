@@ -30,6 +30,21 @@ def setup_window(self):
         print("WINDOW SETUP")
 
 
+def clear_all(self):
+    """Clear all selections and reset interface."""
+    self.selected_files = []
+    self.selected_path_var.set("No file selected")
+    self.output_dir_var.set("")
+    self.current_video_info = Noneeight()
+    center_x = int(screen_width / 2 - self.W / 2)
+    center_y = int(screen_height / 2 - self.H / 2)
+    self.geometry(f"{self.W}x{self.H}+{center_x}+{center_y}")
+    self.resizable(True, True)
+    self.minsize(800, 600)
+    if DEBUG:
+        print("WINDOW SETUP")
+
+
 def setup_icon(self):
     """Setup application icon."""
     try:
@@ -142,7 +157,9 @@ def create_header(self):
     selection_frame.columnconfigure(1, weight=1)
 
     self.browse_btn = ttk.Button(
-        selection_frame, text="Browse File", command=lambda: browse_file_or_folder(self)
+        selection_frame,
+        text="Browse File",
+        command=lambda: browse_file_or_folder(self),
     )
     self.browse_btn.grid(row=0, column=0, padx=(0, 10))
 
@@ -482,8 +499,7 @@ def create_footer_controls(self):
         side="left"
     )
 
-
-# Helper functions for GUI interactions
+    # Helper functions for GUI interactions
 
 
 def update_mode_selection(self):
@@ -601,10 +617,10 @@ def start_encoding(self):
 
     # Start encoding in background
     self.thread_manager.run_with_progress(
-        target_func=lambda: encode_all_files(self),
+        target_func=encode_all_files,
         completion_callback=lambda success: on_encoding_complete(self, success),
         progress_callback=lambda p, s: update_progress(self, p, s),
-        args=(),
+        args=(self,),
     )
 
 
@@ -634,21 +650,20 @@ def encode_all_files(self):
         if not success:
             return False
 
-        return True
+    return True
 
-    def update_encoding_progress(
-        self, current_file, total_files, file_progress, status
-    ):
-        """Update encoding progress during encoding."""
-        overall_progress = (current_file / total_files) * 100 + (
-            file_progress / total_files
-        )
 
-        status_text = f"File {current_file + 1}/{total_files}: {status}"
+def update_encoding_progress(self, current_file, total_files, file_progress, status):
+    """Update encoding progress during encoding."""
+    overall_progress = (current_file / total_files) * 100 + (
+        file_progress / total_files
+    )
 
-        # Update UI in main thread
-        self.progress_var.set(overall_progress)
-        self.status_var.set(status_text)
+    status_text = f"File {current_file + 1}/{total_files}: {status}"
+
+    # Update UI in main thread
+    self.progress_var.set(overall_progress)
+    self.status_var.set(status_text)
 
 
 def update_progress(self, progress, status):
