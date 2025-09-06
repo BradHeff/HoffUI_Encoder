@@ -375,7 +375,10 @@ Distributed under the MIT License. See `LICENSE` for more information.
 ## Contact
 
 **Brad Heffernan** - Lead Developer
-- 🐦 Twitter: [@bradheffernan](https://twitter.com/bradheffernan)
+- 🐦 X: [@n3xtg3ngam3r13](https://x.com/n3xtg3ngam3r13)
+- 🎮 Twitch: [nextgengamer13](https://www.twitch.tv/nextgengamer13)
+- 🥊 Kick: [nextgengamer13](https://kick.com/nextgengamer13)
+- 📺 YouTube: [@nextgengamer13](https://www.youtube.com/@NextGenGamer13)
 - 📧 Email: brad.heffernan83@outlook.com
 - 💼 LinkedIn: [brad-heffernan83](https://www.linkedin.com/in/brad-heffernan83/)
 
