@@ -2,6 +2,7 @@ pyinstaller
 pillow
 ttkbootstrap
 tkthread
+openai
 git+https://github.com/psf/black
 # Note: The above packages are required for the GUI application to function correctly.
 # Ensure you have the necessary dependencies installed in your Python environment.

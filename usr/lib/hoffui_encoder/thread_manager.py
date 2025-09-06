@@ -6,7 +6,8 @@ Handles all background tasks with proper UI feedback and error handling.
 import time
 from threading import Thread
 import tkthread as tkt
-import ttkbootstrap as ttk
+
+# import ttkbootstrap as ttk
 from Functions import show_toast
 
 
@@ -16,6 +17,7 @@ class ThreadManager:
     def __init__(self, main_window):
         self.main_window = main_window
         self.active_threads = []
+        self.stop_requested = False
 
     def run_with_progress(
         self,
@@ -84,6 +86,28 @@ class ThreadManager:
         thread.start()
         self.active_threads.append(thread)
 
+        return thread
+
+    def stop_current_operation(self):
+        """Request to stop the current operation."""
+        self.stop_requested = True
+
+    def reset_stop_flag(self):
+        """Reset the stop flag for new operations."""
+        self.stop_requested = False
+
+    def run_quick_task(self, task_func, args=(), kwargs={}):
+        """Run a quick task in background without full progress handling."""
+
+        def threaded_task():
+            try:
+                task_func(*args, **kwargs)
+            except Exception as e:
+                tkt.call_nosync(show_toast, "ERROR!", f"Task failed: {str(e)}", "angry")
+
+        thread = Thread(target=threaded_task)
+        thread.daemon = True
+        thread.start()
         return thread
 
     def run_search_operation(self, search_func, args=(), kwargs={}):
@@ -197,21 +221,13 @@ class ThreadManager:
 
     def _disable_widgets(self):
         """Disable UI widgets during operations."""
-        try:
-            self.main_window.btn_update.configure(state=ttk.DISABLED)
-            self.main_window.search.configure(state=ttk.DISABLED)
-            self.main_window.search_entry.configure(state=ttk.DISABLED)
-        except AttributeError:
-            pass  # Widget might not exist yet
+        # Note: Specific widget disabling handled by individual operations
+        pass
 
     def _enable_widgets(self):
         """Enable UI widgets after operations."""
-        try:
-            self.main_window.btn_update.configure(state=ttk.NORMAL)
-            self.main_window.search.configure(state=ttk.NORMAL)
-            self.main_window.search_entry.configure(state=ttk.NORMAL)
-        except AttributeError:
-            pass  # Widget might not exist yet
+        # Note: Specific widget enabling handled by individual operations
+        pass
 
     def _populate_search_results(self, results):
         """Populate search results in the treeview."""

@@ -1,11 +1,12 @@
+import sys
 from signal import SIGINT, signal
 
 import ttkbootstrap as ttk
 from ttkbootstrap.dialogs import Messagebox
-
 import Functions as func
 import Gui
 from thread_manager import ThreadManager
+from ffmpeg_encoder import FFMPEGEncoder
 
 # Constants
 WINDOW_TITLE = "HoffUI FFMPEG Encoder v{}"
@@ -57,5 +58,34 @@ class HoffUIEncoder(ttk.Window):
 
 
 if __name__ == "__main__":
+    # Check for command-line arguments
+    if len(sys.argv) > 1:
+        if sys.argv[1] in ["--system-info", "-si", "--sysinfo"]:
+            print("🔍 Displaying System Information for Encoding Optimization")
+            print("=" * 60)
+            try:
+                encoder = FFMPEGEncoder()
+                encoder.display_system_info()
+                print(
+                    "💡 This information is automatically detected when encoding starts."
+                )
+                print("   The application will use these optimal settings dynamically.")
+                sys.exit(0)
+            except Exception as e:
+                print(f"❌ Error detecting system info: {e}")
+                sys.exit(1)
+        elif sys.argv[1] in ["--help", "-h"]:
+            print("HoffUI FFMPEG Encoder - Video Encoding Tool")
+            print("=" * 50)
+            print("Usage:")
+            print("  python main.py                 # Start GUI application")
+            print("  python main.py --system-info   # Show system detection results")
+            print("  python main.py --help          # Show this help")
+            print("")
+            print("The application automatically detects your system capabilities")
+            print("and optimizes encoding settings for maximum performance.")
+            sys.exit(0)
+
+    # Start GUI application
     root = HoffUIEncoder()
     root.mainloop()

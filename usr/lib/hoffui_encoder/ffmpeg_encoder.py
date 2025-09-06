@@ -6,10 +6,10 @@ Handles all video encoding operations using FFMPEG.
 import os
 import subprocess
 import json
-from pathlib import Path
 from typing import List, Optional
 from dataclasses import dataclass
-from Functions import DEBUG
+from Functions import DEBUG, Path
+from system_detector import SystemDetector, SystemSpecs, OptimalSettings
 
 
 @dataclass
@@ -115,6 +115,12 @@ class FFMPEGEncoder:
                 "FFMPEG not found. Please install FFMPEG and add it to PATH."
             )
 
+        # Initialize system detection and optimal settings
+        self.system_detector = SystemDetector()
+        self.system_specs: Optional[SystemSpecs] = None
+        self.optimal_settings: Optional[OptimalSettings] = None
+        self._system_detected = False
+
     def _find_ffmpeg(self) -> Optional[str]:
         """Find FFMPEG executable in system PATH."""
         try:
@@ -135,6 +141,69 @@ class FFMPEGEncoder:
                 return path
 
         return None
+
+    def _ensure_system_detected(self):
+        """Ensure system detection has been performed."""
+        if not self._system_detected:
+            print("🔍 Performing system detection for optimal encoding settings...")
+            self.system_specs, self.optimal_settings = (
+                self.system_detector.detect_and_optimize()
+            )
+            self._system_detected = True
+            print("✅ System detection complete!")
+
+    def get_system_info(
+        self,
+    ) -> tuple[Optional[SystemSpecs], Optional[OptimalSettings]]:
+        """Get system specifications and optimal settings."""
+        self._ensure_system_detected()
+        return self.system_specs, self.optimal_settings
+
+    def refresh_system_info(self):
+        """Force refresh of system detection - useful before encoding starts."""
+        print("🔍 Refreshing system detection for optimal encoding settings...")
+        self._system_detected = False  # Force re-detection
+        self._ensure_system_detected()
+        return self.system_specs, self.optimal_settings
+
+    def display_system_info(self):
+        """Display detected system information."""
+        self._ensure_system_detected()
+        if not self.system_specs or not self.optimal_settings:
+            print("❌ System detection failed")
+            return
+
+        print("\n" + "=" * 60)
+        print("🖥️  SYSTEM DETECTION RESULTS")
+        print("=" * 60)
+        print(
+            f"💻 CPU: {self.system_specs.cpu_cores_physical} physical cores, {self.system_specs.cpu_cores_logical} logical cores"
+        )
+        print(
+            f"🧠 Memory: {self.system_specs.memory_total_gb:.1f}GB total, {self.system_specs.memory_available_gb:.1f}GB available"
+        )
+
+        if self.system_specs.gpu_info:
+            print(f"🎮 GPU: {', '.join(self.system_specs.gpu_info)}")
+        else:
+            print("🎮 GPU: Software rendering only")
+
+        if self.system_specs.hw_acceleration:
+            print(
+                f"🚀 Hardware Acceleration: {', '.join(self.system_specs.hw_acceleration)}"
+            )
+        else:
+            print("🚀 Hardware Acceleration: Not available")
+
+        print("\n⚡ OPTIMAL ENCODING SETTINGS:")
+        print(f"🔧 Optimal Threads: {self.optimal_settings.optimal_threads}")
+        print(f"🛡️  Conservative Threads: {self.optimal_settings.conservative_threads}")
+        if self.optimal_settings.preferred_hwaccel:
+            print(
+                f"🎯 Hardware Acceleration: {self.optimal_settings.preferred_hwaccel}"
+            )
+        print(f"📊 Buffer Size: {self.optimal_settings.buffer_size}")
+        print("=" * 60 + "\n")
 
     def get_video_info(self, file_path: str) -> Optional[VideoInfo]:
         """Extract video information using ffprobe."""
@@ -242,8 +311,49 @@ class FFMPEGEncoder:
     def build_ffmpeg_command(
         self, input_path: str, output_path: str, settings: EncodingSettings
     ) -> List[str]:
-        """Build FFMPEG command based on encoding settings."""
-        cmd = [self.ffmpeg_path, "-i", input_path]
+        """Build FFMPEG command based on encoding settings with dynamic system optimization."""
+        # Ensure system detection has been performed
+        self._ensure_system_detected()
+
+        cmd = [self.ffmpeg_path]
+
+        # Add hardware acceleration if available (must be before input)
+        if self.optimal_settings and self.optimal_settings.preferred_hwaccel:
+            cmd.extend(["-hwaccel", self.optimal_settings.preferred_hwaccel])
+            if DEBUG:
+                print(
+                    f"DEBUG: Using hardware acceleration: {self.optimal_settings.preferred_hwaccel}"
+                )
+
+        # Input file
+        cmd.extend(["-i", input_path])
+
+        # Use dynamically detected optimal threading
+        optimal_threads = (
+            self.optimal_settings.optimal_threads if self.optimal_settings else 8
+        )
+        cmd.extend(["-threads", str(optimal_threads)])
+
+        cmd.extend(["-strict", "-2"])  # Enable experimental features if needed
+
+        # Use dynamic buffer settings based on system capabilities
+        analyze_duration = (
+            self.optimal_settings.analyze_duration if self.optimal_settings else "100M"
+        )
+        probe_size = (
+            self.optimal_settings.probe_size if self.optimal_settings else "100M"
+        )
+        mux_queue_size = (
+            self.optimal_settings.mux_queue_size if self.optimal_settings else 2048
+        )
+
+        cmd.extend(["-analyzeduration", analyze_duration])
+        cmd.extend(["-probesize", probe_size])
+        cmd.extend(["-max_muxing_queue_size", str(mux_queue_size)])
+
+        # Add speed optimization flags
+        cmd.extend(["-fflags", "+fastseek+genpts"])
+        cmd.extend(["-avoid_negative_ts", "make_zero"])
 
         # Video encoding settings
         cmd.extend(["-c:v", settings.video_codec])
@@ -252,7 +362,26 @@ class FFMPEGEncoder:
             cmd.extend(["-crf", str(settings.crf)])
             cmd.extend(["-preset", settings.preset])
 
-        if settings.video_bitrate != "Auto":
+            # Add codec-specific threading optimizations for speed
+            if settings.video_codec == "libx264":
+                # x264 threading optimizations for speed without quality loss
+                thread_count = optimal_threads
+                cmd.extend(
+                    [
+                        "-x264opts",
+                        f"threads={thread_count}:sliced-threads=1:no-scenecut",
+                    ]
+                )
+            elif settings.video_codec == "libx265":
+                # x265 threading optimizations
+                cmd.extend(["-x265-params", f"pools={optimal_threads}:frame-threads=4"])
+
+        # Only add bitrate if it's specified and not empty (CRF mode doesn't need bitrate)
+        if (
+            settings.video_bitrate
+            and settings.video_bitrate != "Auto"
+            and settings.video_bitrate.strip()
+        ):
             cmd.extend(["-b:v", settings.video_bitrate])
 
         # Resolution
@@ -271,7 +400,12 @@ class FFMPEGEncoder:
         # Audio encoding settings
         cmd.extend(["-c:a", settings.audio_codec])
 
-        if settings.audio_bitrate != "Auto":
+        # Only add audio bitrate if it's specified and not empty
+        if (
+            settings.audio_bitrate
+            and settings.audio_bitrate != "Auto"
+            and settings.audio_bitrate.strip()
+        ):
             cmd.extend(["-b:a", settings.audio_bitrate])
 
         if settings.audio_sample_rate != "Original":
@@ -295,38 +429,169 @@ class FFMPEGEncoder:
         output_path: str,
         settings: EncodingSettings,
         progress_callback=None,
+        stop_flag_callback=None,
     ) -> bool:
-        """Encode a single video file."""
-        try:
-            # Ensure output directory exists
-            os.makedirs(os.path.dirname(output_path), exist_ok=True)
+        """Encode a single video file with fallback options for stability."""
+        print(f"DEBUG: encode_video called with input_path={input_path}")
+        print(f"DEBUG: encode_video called with output_path={output_path}")
 
-            # Build command
-            cmd = self.build_ffmpeg_command(input_path, output_path, settings)
+        # Ensure system detection has been performed only once per encoder instance
+        self._ensure_system_detected()
 
-            if DEBUG:
-                print(f"FFMPEG Command: {' '.join(cmd)}")
+        # Try encoding with different stability levels
+        for attempt in range(2):
+            try:
+                # Ensure output directory exists
+                os.makedirs(os.path.dirname(output_path), exist_ok=True)
 
-            # Get video duration for progress calculation
-            video_info = self.get_video_info(input_path)
-            total_duration = video_info.duration if video_info else 0
+                # Build command (modify for fallback attempts)
+                cmd = self.build_ffmpeg_command(input_path, output_path, settings)
 
-            # Start encoding process
-            process = subprocess.Popen(
-                cmd,
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
-                text=True,
-                universal_newlines=True,
-            )
+                # On second attempt, use more conservative settings
+                if attempt == 1:
+                    print(
+                        "DEBUG: First attempt failed, trying conservative settings..."
+                    )
+                    # Use dynamically detected conservative threading
+                    conservative_threads = (
+                        self.optimal_settings.conservative_threads
+                        if self.optimal_settings
+                        else 4
+                    )
 
-            # Monitor progress
-            while True:
-                output = process.stderr.readline()
-                if output == "" and process.poll() is not None:
-                    break
+                    # Build a new conservative command from scratch
+                    cmd = [self.ffmpeg_path, "-i", input_path]
+                    cmd.extend(["-threads", str(conservative_threads)])
+                    # Remove hardware acceleration for fallback
+                    cmd.extend(["-strict", "-2"])
 
-                if output and progress_callback and total_duration > 0:
+                    # Use basic buffer settings
+                    cmd.extend(["-analyzeduration", "100M"])
+                    cmd.extend(["-probesize", "100M"])
+                    cmd.extend(["-max_muxing_queue_size", "1024"])
+
+                    # Add speed optimization flags
+                    cmd.extend(["-fflags", "+fastseek+genpts"])
+                    cmd.extend(["-avoid_negative_ts", "make_zero"])
+
+                    # Video encoding settings
+                    cmd.extend(["-c:v", settings.video_codec])
+
+                    if settings.video_codec in ["libx264", "libx265"]:
+                        cmd.extend(["-crf", str(settings.crf)])
+                        cmd.extend(["-preset", settings.preset])
+
+                        # Conservative codec-specific options
+                        if settings.video_codec == "libx264":
+                            cmd.extend(
+                                [
+                                    "-x264opts",
+                                    f"threads={conservative_threads}:no-scenecut",
+                                ]
+                            )
+                        elif settings.video_codec == "libx265":
+                            cmd.extend(
+                                [
+                                    "-x265-params",
+                                    f"pools={conservative_threads}:frame-threads=2",
+                                ]
+                            )
+
+                    # Audio settings
+                    cmd.extend(["-c:a", settings.audio_codec])
+                    if (
+                        settings.audio_bitrate
+                        and settings.audio_bitrate != "Auto"
+                        and settings.audio_bitrate.strip()
+                    ):
+                        cmd.extend(["-b:a", settings.audio_bitrate])
+
+                    # Resolution and FPS (if not original)
+                    if (
+                        settings.resolution != "Original"
+                        and settings.resolution in self.RESOLUTIONS
+                    ):
+                        resolution = self.RESOLUTIONS[settings.resolution]
+                        if resolution:
+                            cmd.extend(["-vf", f"scale={resolution}"])
+
+                    if settings.fps != "Original":
+                        cmd.extend(["-r", settings.fps])
+
+                    # Audio sample rate and channels
+                    if settings.audio_sample_rate != "Original":
+                        cmd.extend(["-ar", settings.audio_sample_rate])
+
+                    if settings.audio_channels != "Original":
+                        if settings.audio_channels == "1":
+                            cmd.extend(["-ac", "1"])
+                        elif settings.audio_channels == "2":
+                            cmd.extend(["-ac", "2"])
+
+                    cmd.extend(["-y"])  # Overwrite output file
+                    cmd.append(output_path)
+
+                print(f"DEBUG: FFMPEG Command (attempt {attempt + 1}): {' '.join(cmd)}")
+
+                # Get video duration for progress calculation
+                video_info = self.get_video_info(input_path)
+                total_duration = video_info.duration if video_info else 0
+                print(f"DEBUG: Video duration: {total_duration} seconds")
+
+                # Start encoding process
+                print(f"DEBUG: Starting FFmpeg process (attempt {attempt + 1})...")
+                result = self._run_ffmpeg_process(
+                    cmd, total_duration, progress_callback, stop_flag_callback
+                )
+
+                if result:
+                    return True  # Success!
+                elif attempt == 0:
+                    print("DEBUG: First attempt failed, will try fallback...")
+                    continue  # Try again with fallback
+                else:
+                    return False  # Both attempts failed
+
+            except Exception as e:
+                print(f"ERROR: Encoding error (attempt {attempt + 1}): {e}")
+                if attempt == 1:  # Last attempt
+                    import traceback
+
+                    traceback.print_exc()
+                    return False
+
+        return False
+
+    def _run_ffmpeg_process(
+        self, cmd, total_duration, progress_callback, stop_flag_callback
+    ):
+        """Run the FFmpeg process and monitor progress."""
+        process = subprocess.Popen(
+            cmd,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True,
+            universal_newlines=True,
+        )
+
+        # Collect stderr for debugging
+        stderr_lines = []
+
+        # Monitor progress
+        while True:
+            # Check if stop was requested
+            if stop_flag_callback and stop_flag_callback():
+                process.terminate()
+                return False
+
+            output = process.stderr.readline()
+            if output == "" and process.poll() is not None:
+                break
+
+            if output:
+                stderr_lines.append(output.strip())
+
+                if progress_callback and total_duration > 0:
                     # Parse FFMPEG progress output
                     if "time=" in output:
                         try:
@@ -347,12 +612,34 @@ class FFMPEGEncoder:
                         except Exception as e:
                             print(f"Progress monitoring error: {e}")
 
-            return process.returncode == 0
+        print("DEBUG: FFmpeg process completed")
+        return_code = process.returncode
+        print(f"DEBUG: FFmpeg return code: {return_code}")
 
-        except Exception as e:
-            if DEBUG:
-                print(f"Encoding error: {e}")
-            return False
+        if return_code != 0:
+            # Print last few lines of stderr for debugging
+            print("DEBUG: FFmpeg stderr output:")
+            for line in stderr_lines[-10:]:  # Show last 10 lines
+                if line.strip():
+                    print(f"  {line}")
+
+            # Handle specific error codes
+            if return_code == -11:
+                print(
+                    "ERROR: FFmpeg segmentation fault - possible memory/threading issue with HEVC input"
+                )
+            elif return_code == 1:
+                print(
+                    "ERROR: FFmpeg general error - check command syntax and input file"
+                )
+            elif return_code == 234:
+                print(
+                    "ERROR: FFmpeg parameter error - invalid command line arguments or unsupported codec combination"
+                )
+            else:
+                print(f"ERROR: FFmpeg failed with return code {return_code}")
+
+        return return_code == 0
 
     def get_output_path(
         self,
@@ -360,20 +647,48 @@ class FFMPEGEncoder:
         output_directory: str,
         settings: EncodingSettings,
         maintain_structure: bool = True,
+        original_base_path: str = None,
     ) -> str:
         """Generate output path for encoded file."""
         input_file = Path(input_path)
         filename_without_ext = input_file.stem
 
-        # Add encoding suffix
-        output_filename = f"{filename_without_ext}_encoded.{settings.output_format}"
+        # Keep original filename without any suffix
+        output_filename = f"{filename_without_ext}.{settings.output_format}"
 
-        if maintain_structure:
-            # Maintain directory structure relative to the base input directory
-            return os.path.join(output_directory, output_filename)
-        else:
-            # Flatten structure - all files in output directory
-            return os.path.join(output_directory, output_filename)
+        if maintain_structure and original_base_path:
+            # Maintain directory structure relative to the original base path
+            input_path_obj = Path(input_path)
+            base_path_obj = Path(original_base_path)
+
+            # Get the name of the selected folder to include in output structure
+            selected_folder_name = base_path_obj.name
+
+            # Get relative path from base directory
+            try:
+                relative_path = input_path_obj.relative_to(base_path_obj)
+                relative_dir = relative_path.parent
+
+                # Create full output path maintaining structure with selected folder name
+                if relative_dir == Path("."):  # File is in root of selected folder
+                    output_dir = Path(output_directory) / selected_folder_name
+                else:
+                    output_dir = (
+                        Path(output_directory) / selected_folder_name / relative_dir
+                    )
+
+                # Ensure output directory exists
+                output_dir.mkdir(parents=True, exist_ok=True)
+
+                return str(output_dir / output_filename)
+            except ValueError:
+                # If relative path calculation fails, fall back to simple structure
+                pass
+
+        # Simple structure - all files in output directory
+        output_path = Path(output_directory) / output_filename
+        output_path.parent.mkdir(parents=True, exist_ok=True)
+        return str(output_path)
 
     def format_duration(self, seconds: float) -> str:
         """Format duration in seconds to human readable format."""

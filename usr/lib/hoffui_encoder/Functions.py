@@ -1,5 +1,6 @@
-from os import path, makedirs
+from os import makedirs
 from ttkbootstrap.toast import ToastNotification
+from pathlib import Path
 
 # Constants
 DEBUG_SVR = False
@@ -13,11 +14,18 @@ Version = f"v{Version_Number}"
 
 def ensure_directory_exists(directory):
     """Check if the directory exists, and create it if it doesn't."""
-    if not path.exists(directory):
+    if not Path(directory).exists():
         makedirs(directory)
         print(f"Created directory: {directory}")
     else:
         print(f"Directory already exists: {directory}")
+
+
+def ensure_file_exists(file_path):
+    if not Path(file_path).is_file():
+        return False
+    else:
+        return True
 
 
 def show_toast(title, message, type="happy"):
