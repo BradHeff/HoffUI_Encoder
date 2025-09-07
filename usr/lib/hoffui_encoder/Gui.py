@@ -22,14 +22,14 @@ from settings_manager import SettingsManager
 
 def setup_window(self):
     """Setup main window with optimized dimensions."""
-    self.W, self.H = 1050, 940
+    self.W, self.H = 1050, 1010
     screen_width = self.winfo_screenwidth()
     screen_height = self.winfo_screenheight()
     center_x = int(screen_width / 2 - self.W / 2)
     center_y = int(screen_height / 2 - self.H / 2)
     self.geometry(f"{self.W}x{self.H}+{center_x}+{center_y}")
     self.resizable(True, True)
-    self.minsize(1050, 940)
+    self.minsize(1050, 1010)
     if DEBUG:
         print("WINDOW SETUP")
 
@@ -332,6 +332,11 @@ def create_main_content_tabs(self):
     self.notebook.add(output_tab, text="Output Settings")
     create_output_settings_tab(self, output_tab)
 
+    # Extras Tab (Resource Analytics)
+    extras_tab = ttk.Frame(self.notebook)
+    self.notebook.add(extras_tab, text="Extras")
+    create_extras_tab(self, extras_tab)
+
     # System Information Tab
     system_tab = ttk.Frame(self.notebook)
     self.notebook.add(system_tab, text="System")
@@ -550,6 +555,131 @@ def create_output_settings_tab(self, parent):
         advanced_frame, text="Overwrite existing files", variable=self.overwrite_var
     )
     overwrite_check.pack(anchor="w")
+
+
+def create_extras_tab(self, parent):
+    """Create extras tab with Resource Analytics toggle and other advanced features using horizontal layout."""
+
+    # Create main container with minimal padding for maximum space utilization
+    main_frame = ttk.Frame(parent)
+    main_frame.pack(fill="both", expand=True, padx=10, pady=5)
+
+    # Configure grid layout for horizontal arrangement
+    main_frame.columnconfigure(0, weight=1)
+    main_frame.columnconfigure(1, weight=1)
+    main_frame.rowconfigure(1, weight=1)  # Main content expandable
+
+    # === TOP SECTION: Title (Full Width) ===
+    title_frame = ttk.Frame(main_frame)
+    title_frame.grid(row=0, column=0, columnspan=2, sticky="ew", pady=(0, 10))
+
+    title_label = ttk.Label(
+        title_frame, text="🚀 Extra Features & Analytics", font=("Arial", 14, "bold")
+    )
+    title_label.pack()
+
+    # === MAIN CONTENT: Two Column Layout ===
+
+    # Left Column - Resource Analytics
+    left_column = ttk.Frame(main_frame)
+    left_column.grid(row=1, column=0, sticky="nsew", padx=(0, 5))
+    left_column.rowconfigure(0, weight=1)
+
+    # Right Column - Future Features
+    right_column = ttk.Frame(main_frame)
+    right_column.grid(row=1, column=1, sticky="nsew", padx=(5, 0))
+    right_column.rowconfigure(0, weight=1)
+
+    # === LEFT COLUMN: Resource Analytics Section ===
+    analytics_frame = ttk.LabelFrame(
+        left_column, text="📊 Resource Usage Analytics", padding=15
+    )
+    analytics_frame.grid(row=0, column=0, sticky="nsew")
+
+    # Description
+    desc_label = ttk.Label(
+        analytics_frame,
+        text="Monitor system resources and FFmpeg processes\nin real-time with graphical displays.",
+        font=("Arial", 10),
+        foreground="gray",
+        justify="center",
+    )
+    desc_label.pack(pady=(0, 15))
+
+    # Analytics toggle with enhanced styling
+    toggle_frame = ttk.Frame(analytics_frame)
+    toggle_frame.pack(fill="x", pady=(0, 15))
+
+    # Initialize the analytics toggle variable
+    if not hasattr(self, "resource_analytics_enabled"):
+        self.resource_analytics_enabled = ttk.BooleanVar(value=False)
+
+    analytics_check = ttk.Checkbutton(
+        toggle_frame,
+        text="Enable Resource Analytics",
+        variable=self.resource_analytics_enabled,
+        command=lambda: toggle_resource_analytics(self),
+        style="success.TCheckbutton",
+    )
+    analytics_check.pack(side="left")
+
+    # Status indicator
+    self.analytics_status_label = ttk.Label(
+        toggle_frame, text="● Disabled", font=("Arial", 9), foreground="red"
+    )
+    self.analytics_status_label.pack(side="right")
+
+    # Analytics features description - compact format
+    features_text = """✓ Real-time CPU, Memory, Network monitoring
+✓ FFmpeg process tracking & metrics
+✓ Interactive charts with history data
+✓ Companion window positioning
+✓ Live performance analytics"""
+
+    features_label = ttk.Label(
+        analytics_frame,
+        text=features_text,
+        font=("Arial", 9),
+        justify="left",
+        foreground="gray",
+    )
+    features_label.pack(anchor="w")
+
+    # === RIGHT COLUMN: Future Features Section ===
+    future_frame = ttk.LabelFrame(right_column, text="🚀 Coming Soon", padding=15)
+    future_frame.grid(row=0, column=0, sticky="nsew")
+
+    # Future features - compact format
+    future_text = """✓ Video quality comparison tools
+✓ Encoding presets marketplace
+✓ Batch operation templates
+✓ Advanced filtering options
+✓ Cloud storage integration
+✓ Performance benchmarking
+✓ Custom encoding profiles"""
+
+    future_label = ttk.Label(
+        future_frame,
+        text=future_text,
+        font=("Arial", 9),
+        justify="left",
+        foreground="gray",
+    )
+    future_label.pack(anchor="w", pady=(10, 0))
+
+    # Add some spacing and additional info
+    info_label = ttk.Label(
+        future_frame,
+        text="\nThese features are planned for future releases.\nStay tuned for updates!",
+        font=("Arial", 8),
+        justify="center",
+        foreground="darkgray",
+    )
+    info_label.pack(pady=(20, 0))
+
+    # Initialize resource analytics (but don't start monitoring yet)
+    if not hasattr(self, "resource_analytics"):
+        self.resource_analytics = None
 
 
 def create_system_info_tab(self, parent):
@@ -1370,6 +1500,63 @@ def on_folder_loaded(self, files):
         load_video_info(self, files[0])
 
 
+def toggle_resource_analytics(self):
+    """Toggle Resource Usage Analytics on/off."""
+    try:
+        if self.resource_analytics_enabled.get():
+            # Import and initialize resource analytics
+            from resource_analytics import ResourceAnalytics
+
+            if not self.resource_analytics:
+                self.resource_analytics = ResourceAnalytics(self)
+
+            # Update status
+            self.analytics_status_label.configure(text="● Enabled", foreground="green")
+            show_toast(
+                self,
+                "Resource Analytics Enabled",
+                "Monitoring will start when encoding begins.",
+            )
+
+            if DEBUG:
+                print("Resource analytics enabled")
+        else:
+            # Disable analytics
+            if self.resource_analytics:
+                self.resource_analytics.close_analytics_window()
+                self.resource_analytics = None
+
+            # Update status
+            self.analytics_status_label.configure(text="● Disabled", foreground="red")
+            show_toast(
+                self, "Resource Analytics Disabled", "Monitoring has been stopped."
+            )
+
+            if DEBUG:
+                print("Resource analytics disabled")
+
+    except ImportError as e:
+        # Handle missing dependencies
+        self.resource_analytics_enabled.set(False)
+        self.analytics_status_label.configure(
+            text="● Error (Missing Dependencies)", foreground="red"
+        )
+        show_toast(
+            self,
+            "Dependencies Missing",
+            "Please install: pip install matplotlib psutil",
+        )
+        if DEBUG:
+            print(f"Resource analytics import error: {e}")
+    except Exception as e:
+        # Handle other errors
+        self.resource_analytics_enabled.set(False)
+        self.analytics_status_label.configure(text="● Error", foreground="red")
+        show_toast(self, "Error", f"Failed to toggle analytics: {str(e)}")
+        if DEBUG:
+            print(f"Error toggling resource analytics: {e}")
+
+
 def start_encoding(self):
     """Start the encoding process."""
     # IMMEDIATE UI feedback - disable button and show status FIRST
@@ -1437,6 +1624,24 @@ def start_encoding(self):
 
     # Reset stop flag
     self.thread_manager.reset_stop_flag()
+
+    # Start resource analytics monitoring if enabled
+    if (
+        hasattr(self, "resource_analytics_enabled")
+        and self.resource_analytics_enabled.get()
+        and hasattr(self, "resource_analytics")
+        and self.resource_analytics
+    ):
+        try:
+            self.status_var.set("Starting resource monitoring...")
+            self.update()
+            self.resource_analytics.start_monitoring()
+            if DEBUG:
+                print("Resource analytics monitoring started")
+        except Exception as e:
+            if DEBUG:
+                print(f"Failed to start resource analytics: {e}")
+            show_toast(self, "Analytics Warning", "Resource monitoring failed to start")
 
     print("DEBUG: Starting encoding thread...")
 
@@ -1678,6 +1883,10 @@ def on_encoding_complete(self, success):
     """Handle encoding completion."""
     print(f"DEBUG: Encoding completed with success={success}")
 
+    # Stop resource analytics monitoring
+    if hasattr(self, "resource_analytics") and self.resource_analytics:
+        self.resource_analytics.stop_monitoring_process()
+
     # Re-enable controls
     self.start_btn.configure(state="normal")
     self.stop_btn.configure(state=DISABLED)
@@ -1701,6 +1910,10 @@ def on_encoding_complete(self, success):
 
 def stop_encoding(self):
     """Stop the encoding process."""
+    # Stop resource analytics monitoring
+    if hasattr(self, "resource_analytics") and self.resource_analytics:
+        self.resource_analytics.stop_monitoring_process()
+
     # Request stop from thread manager
     self.thread_manager.stop_current_operation()
 

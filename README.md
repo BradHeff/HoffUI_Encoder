@@ -233,6 +233,7 @@ HoffUI Encoder provides multiple ways to encode your videos:
 - **Concurrent Processing**: Parallel file analysis and encoding
 - **Debug Mode**: Detailed logging for troubleshooting
 - **Profile Management**: Save/load encoding configurations
+- **Resource usage analytics**: Opens window to monitor resource usage during encoding
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
@@ -291,7 +292,7 @@ HoffUI Encoder provides multiple ways to encode your videos:
   - [ ] Encoding history tracking
   - [ ] Performance benchmarking
   - [ ] Quality metrics dashboard
-  - [ ] Resource usage analytics
+  - [x] ✅ Resource usage analytics
 
 ### 🐛 Current Focus (v1.0.x)
 - [x] ✅ FFmpeg parameter optimization

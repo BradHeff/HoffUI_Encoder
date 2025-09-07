@@ -43,7 +43,16 @@ class HoffUIEncoder(ttk.Window):
         return bool(s and not s.isspace())
 
     def on_closing(self):
-        print("Thanks for using Horizon Password User Tool!\n")
+        """Handle application closing with proper cleanup."""
+        # Stop resource analytics monitoring if active
+        if hasattr(self, "resource_analytics") and self.resource_analytics:
+            self.resource_analytics.stop_monitoring_process()
+
+        # Stop any active encoding operations
+        if hasattr(self, "thread_manager"):
+            self.thread_manager.stop_current_operation()
+
+        print("Thanks for using HoffUI FFMPEG Encoder!\n")
         self.destroy()
 
     def _hide(self):

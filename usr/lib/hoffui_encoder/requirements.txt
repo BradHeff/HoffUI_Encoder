@@ -4,6 +4,8 @@ ttkbootstrap
 tkthread
 openai
 python-dotenv
+psutil>=5.9.0
+matplotlib>=3.5.0
 git+https://github.com/psf/black
 # Note: The above packages are required for the GUI application to function correctly.
 # Ensure you have the necessary dependencies installed in your Python environment.

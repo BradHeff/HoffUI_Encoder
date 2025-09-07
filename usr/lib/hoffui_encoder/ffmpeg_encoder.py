@@ -423,7 +423,7 @@ class FFMPEGEncoder:
 
         return cmd
 
-    def encode_video(
+    def encode_video(  # noqa
         self,
         input_path: str,
         output_path: str,
