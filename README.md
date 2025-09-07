@@ -64,6 +64,8 @@
 ## About The Project
 
 [![HoffUI Encoder Screenshot][product-screenshot]](https://github.com/BradHeff/HoffUI_Encoder)
+[![HoffUI Encoder Screenshot][product-screenshot2]](https://github.com/BradHeff/HoffUI_Encoder)
+[![HoffUI Encoder Screenshot][product-screenshot3]](https://github.com/BradHeff/HoffUI_Encoder)
 
 **HoffUI FFMPEG Encoder** is a sophisticated, user-friendly video encoding application that combines the power of FFmpeg with intelligent AI analysis and automatic system optimization. Designed for both beginners and professionals, it provides an intuitive GUI interface while leveraging advanced algorithms to deliver optimal encoding results.
 
@@ -426,6 +428,8 @@ Special thanks to the amazing open source community and these fantastic projects
 [linkedin-url]: https://www.linkedin.com/in/brad-heffernan83/
 
 [product-screenshot]: images/screenshot1.png
+[product-screenshot2]: images/screenshot2.png
+[product-screenshot3]: images/screenshot3.png
 
 [ttkbootstrap]: https://img.shields.io/badge/ttkbootstrap-35495E?style=for-the-badge&logo=python&logoColor=61DAFB
 [Python3]: https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=python&logoColor=white
