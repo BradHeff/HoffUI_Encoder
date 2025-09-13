@@ -24,9 +24,8 @@ Dependencies:
 - os: Directory creation operations
 """
 
-from os import makedirs
 from ttkbootstrap.toast import ToastNotification
-from pathlib import Path
+
 
 # Constants
 DEBUG = False
@@ -35,7 +34,6 @@ Version = f"v{Version_Number}"
 
 
 # Generic utility functions and constants
-
 
 
 def show_toast(title, message, type="happy"):
@@ -55,7 +53,6 @@ def show_toast(title, message, type="happy"):
 def is_not_blank(s):
     """Check if string is not blank or whitespace only."""
     return bool(s and not s.isspace())
-
 
 
 def calculate_analytics_window_position(parent_window):

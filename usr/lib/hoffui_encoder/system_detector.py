@@ -353,6 +353,10 @@ class SystemDetector:
         elif memory_gb > 32:  # High memory systems
             optimal_threads = min(optimal_threads + 4, logical_cores)
 
+        # Reduce thread count by 2 for system stability to prevent kernel panic
+        optimal_threads = max(1, optimal_threads - 2)
+        conservative_threads = max(1, conservative_threads - 2)
+
         # Hardware acceleration detection
         preferred_hwaccel = None
         hw_decoder = None

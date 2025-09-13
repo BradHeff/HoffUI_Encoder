@@ -32,7 +32,8 @@ import subprocess
 import json
 from typing import List, Optional
 from dataclasses import dataclass
-from Functions import DEBUG, Path
+from pathlib import Path
+from Functions import DEBUG
 from system_detector import SystemDetector, SystemSpecs, OptimalSettings
 
 

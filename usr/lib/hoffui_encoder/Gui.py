@@ -1,7 +1,7 @@
 """
 HoffUI FFMPEG Encoder - Graphical User Interface Module
 
-This module implements the complete graphical user interface for the HoffUI FFMPEG 
+This module implements the complete graphical user interface for the HoffUI FFMPEG
 Encoder application. It provides a comprehensive, tabbed interface for video encoding
 configuration, real-time progress monitoring, and system integration features.
 
@@ -880,8 +880,6 @@ def create_compact_empty_display_handler(self):
         foreground="gray",
     )
     summary_label.pack()
-
-
 
 
 def detect_system_info_handler(self):
@@ -1992,8 +1990,6 @@ def update_encoding_settings_from_gui(self):
     print(f"  CRF: {self.encoding_settings.crf}")
     print(f"  Preset: {self.encoding_settings.preset}")
     print(f"  Output Format: {self.encoding_settings.output_format}")
-
-
 
 
 # Main function to initialize GUI
