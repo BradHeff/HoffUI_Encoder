@@ -1,8 +1,32 @@
 """
-Resource Analytics Module for HoffUI Encoder
+HoffUI FFMPEG Encoder - Real-Time Resource Analytics Module
 
-Provides real-time system monitoring, FFmpeg process tracking,
-and companion window visualization for resource usage analysis.
+This module provides comprehensive real-time system resource monitoring and
+visualization capabilities for the HoffUI Encoder. It tracks CPU, memory, disk I/O,
+and FFMPEG process performance with interactive matplotlib-based charts in a
+companion analytics window.
+
+Author: Brad Heffernan
+Email: brad.heffernan83@outlook.com
+Project: HoffUI Encoder
+License: GNU General Public License v3.0
+
+Features:
+- Real-time system resource monitoring (CPU, memory, disk I/O)
+- FFMPEG process-specific performance tracking
+- Interactive matplotlib visualization with live updates
+- Companion window positioning and management
+- Performance history and trend analysis
+- Thread-safe data collection and UI updates
+- Customizable monitoring intervals and data retention
+- Resource usage analytics and optimization recommendations
+
+Dependencies:
+- Functions: Shared debugging and utility support
+- ttkbootstrap: Modern GUI framework for analytics window
+- matplotlib: Advanced plotting and visualization
+- psutil: System and process monitoring capabilities
+- threading: Background data collection and UI updates
 """
 
 import time
@@ -77,7 +101,7 @@ class ResourceAnalytics:
             screen_width = self.parent_window.winfo_screenwidth()
 
             # Analytics window dimensions
-            analytics_width = 400
+            analytics_width = 550
             analytics_height = main_height
 
             # Determine placement (left or right of main window)

@@ -1,3 +1,34 @@
+"""
+HoffUI FFMPEG Encoder - Version Management Utility
+
+This utility module manages version information across the application, updating
+version strings in both Python modules and Windows resource files. It ensures
+consistent versioning throughout the build and release process.
+
+Author: Brad Heffernan
+Email: brad.heffernan83@outlook.com
+Project: HoffUI Encoder
+License: GNU General Public License v3.0
+
+Usage:
+- Run with version argument: python update_version.py [version]
+- Updates version in Functions.py and version.rc files
+- Maintains synchronization between Python and Windows version info
+- Part of the automated release and build pipeline
+
+Features:
+- Automatic version string parsing and formatting
+- Cross-file version synchronization
+- Windows resource file (.rc) support
+- Command-line version specification
+- File backup and error recovery
+
+Dependencies:
+- pathlib: Modern file path handling
+- sys: Command-line argument processing
+- File I/O operations for version file modification
+"""
+
 from pathlib import Path
 import sys
 

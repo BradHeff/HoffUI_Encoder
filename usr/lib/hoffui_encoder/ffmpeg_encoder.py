@@ -1,6 +1,30 @@
 """
-FFMPEG Encoder Module
-Handles all video encoding operations using FFMPEG.
+HoffUI FFMPEG Encoder - Core Video Encoding Engine Module
+
+This module provides the complete FFMPEG-based video encoding functionality for the
+HoffUI Encoder application. It handles video file analysis, encoding parameter
+optimization, hardware acceleration detection, and robust encoding operations with
+fallback strategies.
+
+Author: Brad Heffernan
+Email: brad.heffernan83@outlook.com
+Project: HoffUI Encoder
+License: GNU General Public License v3.0
+
+Features:
+- Comprehensive video file information extraction
+- Multi-format video file discovery and processing
+- Hardware-accelerated encoding with fallback support
+- Optimal encoding parameter calculation based on system specs
+- Progress tracking and real-time status monitoring
+- Error handling and recovery mechanisms
+- Cross-platform compatibility with FFMPEG integration
+
+Dependencies:
+- Functions: Shared utilities and debugging support
+- system_detector: Hardware capability detection and optimization
+- subprocess: FFMPEG process execution and management
+- pathlib: Modern file system operations
 """
 
 import os

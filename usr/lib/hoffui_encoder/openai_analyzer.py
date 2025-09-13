@@ -1,7 +1,29 @@
 """
-OpenAI Video Analysis Module
-Analyzes video properties to determine optimal encoding settings
-for maximum quality with minimal file size.
+HoffUI FFMPEG Encoder - AI-Powered Video Analysis Module
+
+This module provides intelligent video analysis capabilities using OpenAI's API to
+determine optimal encoding settings. It combines technical video analysis with
+AI-powered optimization to achieve maximum quality with minimal file size.
+
+Author: Brad Heffernan
+Email: brad.heffernan83@outlook.com
+Project: HoffUI Encoder
+License: GNU General Public License v3.0
+
+Features:
+- Technical video analysis using FFMPEG probe capabilities
+- AI-powered encoding optimization via OpenAI GPT models
+- Fallback rule-based analysis for offline operation
+- Intelligent parameter selection based on content analysis
+- Quality vs. file size optimization algorithms
+- Support for various video formats and codecs
+- Error handling and graceful degradation
+
+Dependencies:
+- ffmpeg_encoder: Video information and encoding settings structures
+- subprocess: FFMPEG probe execution for technical analysis
+- json: Response parsing and data serialization
+- os: Environment variable management for API keys
 """
 
 import json

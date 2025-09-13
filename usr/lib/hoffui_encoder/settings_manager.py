@@ -1,6 +1,30 @@
 """
-Settings Manager for HoffUI Encoder
-Handles loading/saving user settings and environment variables
+HoffUI FFMPEG Encoder - Application Settings Management Module
+
+This module provides comprehensive settings management for the HoffUI Encoder
+application, handling user preferences, environment variables, and cross-platform
+configuration persistence. It ensures consistent application behavior across
+different operating systems and user sessions.
+
+Author: Brad Heffernan
+Email: brad.heffernan83@outlook.com
+Project: HoffUI Encoder
+License: GNU General Public License v3.0
+
+Features:
+- Cross-platform settings storage and retrieval
+- JSON-based configuration file management
+- Environment variable handling and validation
+- User preference persistence across sessions
+- Default settings initialization and fallback
+- Platform-specific directory resolution
+- Secure API key and sensitive data management
+
+Dependencies:
+- pathlib: Modern file system operations
+- json: Settings serialization and deserialization
+- platform: Operating system detection for platform-specific paths
+- os: Environment variable access and management
 """
 
 import os

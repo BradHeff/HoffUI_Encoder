@@ -1,6 +1,30 @@
 """
-System Detection Module
-Detects system capabilities for optimal encoding performance.
+HoffUI FFMPEG Encoder - System Hardware Detection Module
+
+This module provides comprehensive system hardware detection and analysis capabilities
+to optimize video encoding performance. It automatically detects CPU, memory, GPU,
+and hardware acceleration support to configure optimal encoding parameters.
+
+Author: Brad Heffernan
+Email: brad.heffernan83@outlook.com
+Project: HoffUI Encoder
+License: GNU General Public License v3.0
+
+Features:
+- CPU architecture and capability detection
+- Memory capacity and availability monitoring
+- GPU detection and hardware acceleration support
+- FFMPEG feature and codec enumeration
+- Optimal threading and resource allocation calculation
+- Performance benchmarking and optimization recommendations
+- Cross-platform hardware detection support
+- Real-time system resource monitoring
+
+Dependencies:
+- Functions: Shared debugging and utility support
+- psutil: System and process monitoring capabilities
+- subprocess: External command execution for hardware probing
+- platform: Operating system and architecture detection
 """
 
 import os

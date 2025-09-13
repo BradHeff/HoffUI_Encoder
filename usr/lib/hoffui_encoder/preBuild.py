@@ -1,3 +1,27 @@
+"""
+HoffUI FFMPEG Encoder - Pre-Build Development Utility
+
+This utility module is used during the development and build process to toggle
+the DEBUG flag in the Functions module. It automatically sets DEBUG to False
+for production builds while allowing developers to maintain debugging capabilities
+during development.
+
+Author: Brad Heffernan
+Email: brad.heffernan83@outlook.com
+Project: HoffUI Encoder
+License: GNU General Public License v3.0
+
+Usage:
+- Run during build process to disable debug mode for production
+- Automatically modifies Functions.py to set DEBUG = False
+- Ensures clean production builds without debug output
+- Part of the automated build pipeline
+
+Dependencies:
+- pathlib: Modern file path handling
+- File I/O operations for Functions.py modification
+"""
+
 from pathlib import Path
 
 paths = str(Path(__file__).parents[0])

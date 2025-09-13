@@ -1,9 +1,32 @@
 """
-Threading Module for Background Operations
-Handles all background tasks with proper UI feedback and error handling.
+HoffUI FFMPEG Encoder - Background Thread Management Module
+
+This module provides comprehensive thread management for background operations in
+the HoffUI Encoder application. It handles video encoding tasks, progress tracking,
+and UI feedback mechanisms while ensuring thread safety and proper resource cleanup.
+
+Author: Brad Heffernan
+Email: brad.heffernan83@outlook.com
+Project: HoffUI Encoder
+License: GNU General Public License v3.0
+
+Features:
+- Progress-aware background task execution
+- Thread-safe UI updates and feedback mechanisms
+- Error handling and recovery for long-running operations
+- Operation cancellation and cleanup support
+- Toast notification integration for user feedback
+- Resource monitoring and system analytics integration
+- Thread pool management for concurrent operations
+
+Dependencies:
+- Functions: Shared utilities and toast notification support
+- threading: Native Python threading capabilities
+- tkthread: Thread-safe Tkinter operations
+- time: Operation timing and delay management
 """
 
-import time
+# import time
 from threading import Thread
 import tkthread as tkt
 
@@ -88,6 +111,16 @@ class ThreadManager:
 
         return thread
 
+    def _disable_widgets(self):
+        """Disable UI widgets during operations."""
+        # Note: Specific widget disabling handled by individual operations
+        pass
+
+    def _enable_widgets(self):
+        """Enable UI widgets after operations."""
+        # Note: Specific widget enabling handled by individual operations
+        pass
+
     def stop_current_operation(self):
         """Request to stop the current operation."""
         self.stop_requested = True
@@ -109,159 +142,6 @@ class ThreadManager:
         thread.daemon = True
         thread.start()
         return thread
-
-    def run_search_operation(self, search_func, args=(), kwargs={}):
-        """Run user search operation with animated progress."""
-
-        def search_with_animation():
-            try:
-                # Start search
-                tkt.call_nosync(
-                    self.main_window.status.configure, text="Searching for user ..."
-                )
-                tkt.call_nosync(self._disable_widgets)
-
-                # Animate progress during search
-                for i in range(1, 101):
-                    tkt.call_nosync(self.main_window.progress.configure, value=i)
-                    if i % 10 == 0:
-                        tkt.call_nosync(
-                            self.main_window.status.configure,
-                            text=f"Searching for user ... {i}%",
-                        )
-                    time.sleep(0.02)  # Reduced sleep time for smoother animation
-
-                # Execute actual search
-                result = search_func(*args, **kwargs)
-
-                # Store results in main window
-                self.main_window.updateList = result
-
-                if not result:
-                    tkt.call_nosync(
-                        show_toast, "COMPLETE!", "No Users by that name", "sad"
-                    )
-                else:
-                    # Populate results
-                    tkt.call_nosync(self._populate_search_results, result)
-
-            except Exception as e:
-                tkt.call_nosync(show_toast, "ERROR!", "Search failed", "angry")
-                tkt.call_nosync(
-                    self.main_window.messageBox, "Error", f"Search failed: {str(e)}"
-                )
-
-            finally:
-                tkt.call_nosync(self._enable_widgets)
-                tkt.call_nosync(self.main_window.status.configure, text="Idle...")
-                tkt.call_nosync(self.main_window.progress.configure, value=0)
-
-        thread = Thread(target=search_with_animation)
-        thread.daemon = True
-        thread.start()
-        return thread
-
-    def run_update_operation(
-        self, update_func, data, completion_message="Operation completed"
-    ):
-        """Run user update operation with progress feedback."""
-
-        def update_with_progress():
-            try:
-                selected_item = self.main_window.tree4.selection()[0]
-                tkt.call_nosync(
-                    self.main_window.status.configure,
-                    text=f"Updating {data['first']} {data['last']}",
-                )
-                tkt.call_nosync(self._disable_widgets)
-                tkt.call_nosync(self.main_window.progress.configure, value=10)
-
-                # Simulate preparation phase
-                tkt.call_nosync(
-                    self.main_window.status.configure, text="Gathering Information..."
-                )
-                time.sleep(0.5)
-                tkt.call_nosync(self.main_window.progress.configure, value=30)
-
-                # Execute the update
-                tkt.call_nosync(
-                    self.main_window.status.configure, text="Updating user..."
-                )
-                result = update_func(data)  # noqa
-                tkt.call_nosync(self.main_window.progress.configure, value=90)
-
-                # Finalization
-                tkt.call_nosync(self.main_window.progress.configure, value=100)
-                tkt.call_nosync(show_toast, "SUCCESS!!", completion_message, "happy")
-
-            except Exception as e:
-                tkt.call_nosync(show_toast, "ERROR!!", "Update failed", "angry")
-                tkt.call_nosync(
-                    self.main_window.messageBox, "Error", f"Update failed: {str(e)}"
-                )
-
-            finally:
-                try:
-                    selected_item = self.main_window.tree4.selection()[0]
-                    tkt.call_nosync(
-                        self.main_window.tree4.selection_remove, selected_item
-                    )
-                except Exception as e:
-                    print(f"Error removing selection: {e}")
-                    pass
-                tkt.call_nosync(self._reset_selection)
-                tkt.call_nosync(self._enable_widgets)
-                tkt.call_nosync(self.main_window.status.configure, text="Idle...")
-                tkt.call_nosync(self.main_window.progress.configure, value=0)
-
-        thread = Thread(target=update_with_progress)
-        thread.daemon = True
-        thread.start()
-        return thread
-
-    def _disable_widgets(self):
-        """Disable UI widgets during operations."""
-        # Note: Specific widget disabling handled by individual operations
-        pass
-
-    def _enable_widgets(self):
-        """Enable UI widgets after operations."""
-        # Note: Specific widget enabling handled by individual operations
-        pass
-
-    def _populate_search_results(self, results):
-        """Populate search results in the treeview."""
-        self.main_window.status.configure(text="Populating list...")
-        for user_key in results:
-            user_data = results[user_key]
-            self.main_window.tree4.insert(
-                "",
-                "end",
-                values=(
-                    user_key,
-                    user_data["name"],
-                    user_data["ou"],
-                ),
-            )
-
-    def _reset_selection(self):
-        """Reset selected item and clear entry fields."""
-        self.main_window.selected_item = []
-        # Clear entry fields if they exist
-        try:
-            for entry in [
-                self.main_window.description_entry,
-                self.main_window.title_entry,
-                self.main_window.login_name_entry,
-                self.main_window.domain_entry,
-                self.main_window.lname_entry,
-                self.main_window.fname_entry,
-            ]:
-                entry.configure(state="normal")
-                entry.delete(0, "end")
-            self.main_window.domain_entry.configure(state="readonly")
-        except AttributeError:
-            pass  # Widgets might not exist yet
 
     def stop_all_threads(self):
         """Stop all active threads (for cleanup)."""

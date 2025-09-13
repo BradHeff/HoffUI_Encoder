@@ -1,7 +1,37 @@
 """
-Comprehensive FFMPEG Encoder GUI Module
-Features tabbed settings, video info display, progress tracking,
-and file/folder selection.
+HoffUI FFMPEG Encoder - Graphical User Interface Module
+
+This module implements the complete graphical user interface for the HoffUI FFMPEG 
+Encoder application. It provides a comprehensive, tabbed interface for video encoding
+configuration, real-time progress monitoring, and system integration features.
+
+The GUI is built using ttkbootstrap for a modern, cross-platform appearance and
+supports advanced features like AI-powered optimization, resource monitoring,
+and detailed encoding analytics.
+
+Author: Brad Heffernan
+Email: brad.heffernan83@outlook.com
+Project: HoffUI Encoder
+License: GNU General Public License v3.0
+
+Features:
+- Tabbed interface for organized settings management
+- Video file selection and information display
+- Real-time encoding progress tracking and monitoring
+- AI-powered encoding optimization integration
+- System resource analytics and monitoring
+- Settings persistence and profile management
+- Hardware acceleration detection and configuration
+- Export quality presets and custom configurations
+
+Dependencies:
+- ttkbootstrap: Modern GUI framework
+- PIL (Pillow): Image processing for icons
+- tkinter: Base GUI framework components
+- Functions: Shared utility functions
+- ffmpeg_encoder: Core encoding functionality
+- openai_analyzer: AI optimization features
+- settings_manager: Configuration persistence
 """
 
 import io
@@ -852,10 +882,6 @@ def create_compact_empty_display_handler(self):
     summary_label.pack()
 
 
-def update_system_summary(self):
-    """Update status - no longer needed with compact layout but kept for compatibility."""
-    # This function is now minimal since we don't have a separate summary panel
-    pass
 
 
 def detect_system_info_handler(self):
@@ -888,7 +914,6 @@ def detect_system_info_handler(self):
             }
 
             self.detection_status_var.set("✅ System detection completed successfully!")
-            update_system_summary(self)
             create_system_display_handler(self)
         else:
             self.detection_status_var.set("❌ System detection failed")
@@ -1969,25 +1994,6 @@ def update_encoding_settings_from_gui(self):
     print(f"  Output Format: {self.encoding_settings.output_format}")
 
 
-def get_system_info_dict(self):
-    """
-    Get the system information dictionary for use by the encoder.
-
-    Returns:
-        dict: System information dictionary containing detected hardware specs
-              and optimal encoding settings, or empty dict if not detected yet.
-    """
-    return getattr(self, "system_info_dict", {})
-
-
-def is_system_detected(self):
-    """
-    Check if system detection has been performed.
-
-    Returns:
-        bool: True if system detection has been performed and data is available.
-    """
-    return bool(getattr(self, "system_info_dict", {}))
 
 
 # Main function to initialize GUI

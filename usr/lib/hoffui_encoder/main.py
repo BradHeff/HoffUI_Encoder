@@ -1,3 +1,33 @@
+"""
+HoffUI FFMPEG Encoder - Main Application Module
+
+This module contains the main entry point and primary application class for the 
+HoffUI FFMPEG Encoder, a professional video encoding tool with AI-powered optimization.
+
+The application provides a modern GUI interface for video encoding operations using
+FFMPEG, with automatic system detection and performance optimization capabilities.
+
+Author: Brad Heffernan
+Email: brad.heffernan83@outlook.com
+Project: HoffUI Encoder
+License: GNU General Public License v3.0
+
+Features:
+- Multi-threaded video encoding operations
+- Real-time progress tracking and monitoring
+- System resource analytics and optimization
+- AI-powered encoding parameter optimization
+- Cross-platform compatibility (Linux, Windows, macOS)
+- Hardware acceleration support detection
+
+Dependencies:
+- ttkbootstrap: Modern GUI framework
+- Functions: Shared utility functions
+- Gui: User interface components
+- thread_manager: Background operation management
+- ffmpeg_encoder: Core encoding functionality
+"""
+
 import sys
 from signal import SIGINT, signal
 
